@@ -78,4 +78,3 @@ export function ChatLogViewer({ title = "Conversation", startDate, lastActive, m
     </Card>
   )
 }
-

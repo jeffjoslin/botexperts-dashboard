@@ -186,4 +186,3 @@ export function ChatbotsList({ chatbots, onSelectCustomer }: ChatbotsListProps) 
     </div>
   )
 }
-

@@ -1,9 +1,13 @@
 import { AppSidebar } from "../../components/app-sidebar"
-import { ChartAreaInteractive } from "../../components/chart-area-interactive"
-import { SectionCards } from "../../components/section-cards"
-import { SecondSectionCards } from "../../components/second-section-cards"
+import { EnhancedSectionCards } from "../../components/enhanced-section-cards"
+import { EnhancedSecondSectionCards } from "../../components/enhanced-second-section-cards"
+import { EnhancedChartAreaInteractive } from "../../components/enhanced-chart-area"
+import { EnhancedDataTable } from "../../components/enhanced-data-table"
+import { ParticleBackground } from "../../components/particle-background"
+import { PageTransition } from "../../components/smooth-transitions"
 import { SiteHeader } from "../../components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import data from "./data.json"
 
 export default function Page() {
   return (
@@ -11,19 +15,25 @@ export default function Page() {
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <SectionCards />
-              <SecondSectionCards />
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
+        <ParticleBackground className="min-h-screen">
+          <PageTransition>
+            <div className="flex flex-1 flex-col">
+              <div className="@container/main flex flex-1 flex-col gap-2">
+                <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                  <EnhancedSectionCards />
+                  <EnhancedSecondSectionCards />
+                  <div className="px-4 lg:px-6">
+                    <EnhancedChartAreaInteractive />
+                  </div>
+                  <div className="px-4 lg:px-6">
+                    <EnhancedDataTable data={data} />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </PageTransition>
+        </ParticleBackground>
       </SidebarInset>
     </SidebarProvider>
   )
 }
-

@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AnimatedCard } from "./animated-card"
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -9,33 +10,23 @@ import { useIsMobile } from "@/hooks/use-mobile"
 // Generate smooth data with a specific growth pattern
 const generateSmoothData = (days: number, startDate: Date) => {
   const data = []
-
-  // Define start and end values based on time period
-  // For longer periods, we'll start with more customers/agents
-  // and have a more gradual growth rate
   let startCustomers = 1
   let endCustomers = 25
   let startAgents = 1
   let endAgents = 55
 
-  // Adjust start values for longer time periods
   if (days > 180) {
-    // For periods longer than 6 months
     startCustomers = 0
     startAgents = 0
   }
 
-  // For year to date, scale the end values based on how far we are into the year
   const currentDate = new Date()
   const yearStart = new Date(currentDate.getFullYear(), 0, 1)
-  const yearProgress = (currentDate.getTime() - yearStart.getTime()) / (365 * 24 * 60 * 60 * 1000)
 
-  // For year-long views, increase the end values
   if (days >= 365) {
     endCustomers = 40
     endAgents = 80
   } else if (days >= 180) {
-    // For 6-month view
     endCustomers = 32
     endAgents = 65
   }
@@ -44,14 +35,9 @@ const generateSmoothData = (days: number, startDate: Date) => {
     const date = new Date(startDate)
     date.setDate(startDate.getDate() + i)
 
-    // Calculate progress (0 to 1) through the time period
     const progress = i / (days - 1)
-
-    // Use a cubic easing function for more natural growth
-    // This creates an S-curve: slow start, faster middle, slow end
     const easedProgress = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2
 
-    // Calculate values based on progress
     const customers = Math.round(startCustomers + (endCustomers - startCustomers) * easedProgress)
     const aiAgents = Math.round(startAgents + (endAgents - startAgents) * easedProgress)
 
@@ -73,7 +59,7 @@ const generateSmoothData = (days: number, startDate: Date) => {
 const getCurrentDate = () => new Date()
 const getYearStartDate = () => {
   const now = new Date()
-  return new Date(now.getFullYear(), 0, 1) // January 1st of current year
+  return new Date(now.getFullYear(), 0, 1)
 }
 const getDateXMonthsAgo = (months: number) => {
   const now = new Date()
@@ -95,7 +81,7 @@ const data3m = generateSmoothData(90, getDateXMonthsAgo(3))
 const data30d = generateSmoothData(30, getDateXMonthsAgo(1))
 const data7d = generateSmoothData(7, getDateXMonthsAgo(0.25))
 
-export function ChartAreaInteractive() {
+export function EnhancedChartAreaInteractive() {
   const isMobile = useIsMobile()
   const [timeRange, setTimeRange] = React.useState("3m")
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
@@ -175,14 +161,14 @@ export function ChartAreaInteractive() {
     // Set dimensions
     const width = canvas.width
     const height = canvas.height
-    const padding = { top: 20, right: 20, bottom: 40, left: 40 } // Increased bottom padding for legend
+    const padding = { top: 20, right: 20, bottom: 40, left: 40 }
     const chartWidth = width - padding.left - padding.right
     const chartHeight = height - padding.top - padding.bottom
 
     // Find max value for scaling
-    const maxValue = Math.max(...data.map((item) => item.customers + item.aiAgents)) * 1.1 // Add 10% padding at the top
+    const maxValue = Math.max(...data.map((item) => item.customers + item.aiAgents)) * 1.1
 
-    // Draw background grid
+    // Draw background grid with animation
     ctx.strokeStyle = "#333"
     ctx.lineWidth = 0.5
 
@@ -195,15 +181,13 @@ export function ChartAreaInteractive() {
       ctx.stroke()
     }
 
-    // Draw x-axis labels (only show some to avoid crowding)
+    // Draw x-axis labels
     ctx.fillStyle = "#888"
     ctx.font = "12px Arial"
     ctx.textAlign = "center"
 
-    // Determine label frequency based on data length
-    let labelFrequency = Math.ceil(data.length / 10) // Show about 10 labels
+    let labelFrequency = Math.ceil(data.length / 10)
 
-    // For longer periods, show fewer labels
     if (data.length > 180) labelFrequency = Math.ceil(data.length / 8)
     if (data.length > 300) labelFrequency = Math.ceil(data.length / 6)
 
@@ -221,14 +205,12 @@ export function ChartAreaInteractive() {
       ctx.beginPath()
       ctx.moveTo(points[0].x, points[0].y)
 
-      // Use bezier curves for smoothing
       for (let i = 0; i < points.length - 1; i++) {
         const xc = (points[i].x + points[i + 1].x) / 2
         const yc = (points[i].y + points[i + 1].y) / 2
         ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc)
       }
 
-      // Last point
       ctx.quadraticCurveTo(
         points[points.length - 1].x,
         points[points.length - 1].y,
@@ -237,45 +219,48 @@ export function ChartAreaInteractive() {
       )
 
       if (closePath) {
-        // Complete the path for filling
         ctx.lineTo(points[points.length - 1].x, padding.top + chartHeight)
         ctx.lineTo(points[0].x, padding.top + chartHeight)
         ctx.closePath()
       }
     }
 
-    // Function to draw area
+    // Function to draw area with enhanced gradients
     const drawArea = (dataKey: "customers" | "aiAgents", color: string, gradientColor: string, offset = 0) => {
-      // Create points array
       const points = data.map((item, index) => {
         const x = padding.left + chartWidth * (index / (data.length - 1))
         const y = padding.top + chartHeight - chartHeight * ((item[dataKey] + offset) / maxValue)
         return { x, y, data: item }
       })
 
-      // Create gradient
+      // Create enhanced gradient
       const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight)
       gradient.addColorStop(0, gradientColor)
-      gradient.addColorStop(1, "rgba(0,0,0,0.1)")
+      gradient.addColorStop(0.5, gradientColor.replace("0.5", "0.3"))
+      gradient.addColorStop(1, "rgba(0,0,0,0.05)")
 
       // Draw filled area
       ctx.fillStyle = gradient
       createSmoothPath(ctx, points, true)
       ctx.fill()
 
-      // Draw line
+      // Draw line with glow effect
+      ctx.shadowColor = color
+      ctx.shadowBlur = 10
       ctx.strokeStyle = color
-      ctx.lineWidth = 2
+      ctx.lineWidth = 3
       createSmoothPath(ctx, points)
       ctx.stroke()
+
+      // Reset shadow
+      ctx.shadowBlur = 0
 
       return points
     }
 
-    // Draw areas (customers on top of AI agents)
+    // Draw areas with enhanced styling
     const aiAgentsPoints = drawArea("aiAgents", "#10b981", "rgba(16, 185, 129, 0.5)")
 
-    // Calculate total values (AI Agents + Customers)
     const totalPoints = data.map((item, index) => {
       const x = padding.left + chartWidth * (index / (data.length - 1))
       const total = item.aiAgents + item.customers
@@ -283,14 +268,12 @@ export function ChartAreaInteractive() {
       return { x, y, data: item }
     })
 
-    // Draw customers area (as the difference between total and AI agents)
+    // Draw customers area
     ctx.fillStyle = "rgba(59, 130, 246, 0.5)"
     ctx.beginPath()
 
-    // Start at the first point of the total line
     ctx.moveTo(totalPoints[0].x, totalPoints[0].y)
 
-    // Draw the top line (total)
     for (let i = 1; i < totalPoints.length; i++) {
       const xc = (totalPoints[i - 1].x + totalPoints[i].x) / 2
       const yc = (totalPoints[i - 1].y + totalPoints[i].y) / 2
@@ -303,7 +286,6 @@ export function ChartAreaInteractive() {
       totalPoints[totalPoints.length - 1].y,
     )
 
-    // Now go back along the AI agents line in reverse
     for (let i = aiAgentsPoints.length - 1; i >= 0; i--) {
       const point = aiAgentsPoints[i]
       if (i === aiAgentsPoints.length - 1) {
@@ -316,17 +298,19 @@ export function ChartAreaInteractive() {
     }
     ctx.quadraticCurveTo(aiAgentsPoints[0].x, aiAgentsPoints[0].y, aiAgentsPoints[0].x, aiAgentsPoints[0].y)
 
-    // Create gradient for customers
     const customersGradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight)
     customersGradient.addColorStop(0, "rgba(59, 130, 246, 0.8)")
+    customersGradient.addColorStop(0.5, "rgba(59, 130, 246, 0.4)")
     customersGradient.addColorStop(1, "rgba(59, 130, 246, 0.1)")
 
     ctx.fillStyle = customersGradient
     ctx.fill()
 
-    // Draw the customers line
+    // Draw the customers line with glow
+    ctx.shadowColor = "#3b82f6"
+    ctx.shadowBlur = 10
     ctx.strokeStyle = "#3b82f6"
-    ctx.lineWidth = 2
+    ctx.lineWidth = 3
     ctx.beginPath()
     ctx.moveTo(totalPoints[0].x, totalPoints[0].y)
     for (let i = 1; i < totalPoints.length; i++) {
@@ -341,21 +325,20 @@ export function ChartAreaInteractive() {
       totalPoints[totalPoints.length - 1].y,
     )
     ctx.stroke()
+    ctx.shadowBlur = 0
 
-    // Store points for tooltip handling
+    // Enhanced tooltip handling
     canvas.onmousemove = (e) => {
       const rect = canvas.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
 
-      // Find closest point
       let closestPoint = null
       let minDistance = Number.POSITIVE_INFINITY
 
       totalPoints.forEach((point, index) => {
         const distance = Math.sqrt(Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2))
         if (distance < minDistance && distance < 30) {
-          // 30px threshold
           minDistance = distance
           closestPoint = point
         }
@@ -381,7 +364,7 @@ export function ChartAreaInteractive() {
   }, [timeRange, data])
 
   return (
-    <Card className="@container/card">
+    <AnimatedCard delay={800} className="@container/card">
       <CardHeader className="relative pb-0">
         <CardTitle>Total Visitors</CardTitle>
         <CardDescription>
@@ -396,16 +379,16 @@ export function ChartAreaInteractive() {
             variant="outline"
             className="@[767px]/card:flex hidden"
           >
-            <ToggleGroupItem value="1y" className="h-8 px-2.5">
+            <ToggleGroupItem value="1y" className="h-8 px-2.5 hover:scale-105 transition-transform">
               Last Year
             </ToggleGroupItem>
-            <ToggleGroupItem value="ytd" className="h-8 px-2.5">
+            <ToggleGroupItem value="ytd" className="h-8 px-2.5 hover:scale-105 transition-transform">
               Year to Date
             </ToggleGroupItem>
-            <ToggleGroupItem value="6m" className="h-8 px-2.5">
+            <ToggleGroupItem value="6m" className="h-8 px-2.5 hover:scale-105 transition-transform">
               Last 6 Months
             </ToggleGroupItem>
-            <ToggleGroupItem value="3m" className="h-8 px-2.5">
+            <ToggleGroupItem value="3m" className="h-8 px-2.5 hover:scale-105 transition-transform">
               Last 3 Months
             </ToggleGroupItem>
           </ToggleGroup>
@@ -437,14 +420,14 @@ export function ChartAreaInteractive() {
         </div>
       </CardHeader>
 
-      {/* Legend below the title and period */}
+      {/* Enhanced Legend */}
       <div className="flex items-center gap-6 px-6 pt-2 pb-4">
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+        <div className="flex items-center gap-2 hover:scale-105 transition-transform cursor-pointer">
+          <div className="h-3 w-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50"></div>
           <span className="text-sm text-muted-foreground">Customers</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-green-500"></div>
+        <div className="flex items-center gap-2 hover:scale-105 transition-transform cursor-pointer">
+          <div className="h-3 w-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50"></div>
           <span className="text-sm text-muted-foreground">AI Agents</span>
         </div>
       </div>
@@ -454,26 +437,26 @@ export function ChartAreaInteractive() {
           <canvas ref={canvasRef} width={800} height={250} className="w-full h-full" />
           {tooltipData.visible && (
             <div
-              className="absolute pointer-events-none bg-black border border-gray-700 rounded-md p-2 shadow-lg z-10"
+              className="absolute pointer-events-none bg-black/90 backdrop-blur-sm border border-gray-700 rounded-md p-3 shadow-xl z-10 animate-in fade-in-0 zoom-in-95 duration-200"
               style={{
                 left: `${tooltipData.x + 10}px`,
-                top: `${tooltipData.y - 70}px`,
+                top: `${tooltipData.y - 80}px`,
                 transform: "translateX(-50%)",
               }}
             >
-              <div className="text-gray-300 text-xs mb-1">{tooltipData.date}</div>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              <div className="text-gray-300 text-xs mb-2 font-medium">{tooltipData.date}</div>
+              <div className="flex items-center gap-2 text-sm mb-1">
+                <span className="w-2 h-2 rounded-full bg-blue-500 shadow-sm"></span>
                 <span className="text-white">Customers: {tooltipData.customers}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                <span className="w-2 h-2 rounded-full bg-green-500 shadow-sm"></span>
                 <span className="text-white">AI Agents: {tooltipData.aiAgents}</span>
               </div>
             </div>
           )}
         </div>
       </CardContent>
-    </Card>
+    </AnimatedCard>
   )
 }

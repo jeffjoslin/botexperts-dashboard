@@ -61,4 +61,3 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     </div>
   )
 }
-
