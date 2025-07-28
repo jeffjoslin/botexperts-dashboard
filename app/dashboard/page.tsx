@@ -2,12 +2,10 @@ import { AppSidebar } from "../../components/app-sidebar"
 import { EnhancedSectionCards } from "../../components/enhanced-section-cards"
 import { EnhancedSecondSectionCards } from "../../components/enhanced-second-section-cards"
 import { EnhancedChartAreaInteractive } from "../../components/enhanced-chart-area"
-import { EnhancedDataTable } from "../../components/enhanced-data-table"
 import { ParticleBackground } from "../../components/particle-background"
 import { PageTransition } from "../../components/smooth-transitions"
 import { SiteHeader } from "../../components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import data from "./data.json"
 
 export default function Page() {
   return (
@@ -24,9 +22,6 @@ export default function Page() {
                   <EnhancedSecondSectionCards />
                   <div className="px-4 lg:px-6">
                     <EnhancedChartAreaInteractive />
-                  </div>
-                  <div className="px-4 lg:px-6">
-                    <EnhancedDataTable data={data} />
                   </div>
                 </div>
               </div>

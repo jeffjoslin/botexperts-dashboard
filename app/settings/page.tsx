@@ -1,7 +1,5 @@
 "use client"
 
-import { AlertDialogTrigger } from "@/components/ui/alert-dialog"
-
 import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
 import { AppSidebar } from "../../components/app-sidebar"
@@ -13,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
@@ -33,12 +32,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { PlusIcon, Trash2Icon, PencilIcon } from "lucide-react"
+import { PlusIcon, Trash2Icon, PencilIcon, CheckIcon, Sun, Moon, Monitor } from "lucide-react"
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [compactView, setCompactView] = useState(false)
   const [admins, setAdmins] = useState([
     {
       id: "1",
@@ -58,8 +59,34 @@ export default function SettingsPage() {
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme)
-    toast.success(`Theme changed to ${newTheme} mode`)
+    toast.success(
+      `Theme changed to ${newTheme === "dark-vibrant" ? "Dark Vibrant" : newTheme.charAt(0).toUpperCase() + newTheme.slice(1)}`,
+    )
   }
+
+  const themes = [
+    {
+      id: "light",
+      name: "Light Mode",
+      description: "Clean light theme",
+      icon: Sun,
+      preview: "bg-white border-gray-200",
+    },
+    {
+      id: "dark",
+      name: "Dark Mode",
+      description: "Dark theme with subtle colors",
+      icon: Moon,
+      preview: "bg-gray-900 border-gray-700",
+    },
+    {
+      id: "dark-vibrant",
+      name: "Dark Vibrant",
+      description: "Dark theme with vibrant accents",
+      icon: Monitor,
+      preview: "bg-gray-900 border-blue-500",
+    },
+  ]
 
   if (!mounted) {
     return null
@@ -115,105 +142,71 @@ export default function SettingsPage() {
                 </TabsContent>
 
                 <TabsContent value="appearance" className="mt-6 space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Appearance Settings</CardTitle>
-                      <CardDescription>Customize the appearance of the dashboard.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-3">
-                        <Label>Screen Mode</Label>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="space-y-2">
-                            <div
-                              className={`aspect-video cursor-pointer rounded-md border-2 ${theme === "dark" ? "border-primary" : "border-muted"} bg-[#1e1e2f] p-2 hover:border-primary`}
-                              onClick={() => handleThemeChange("dark")}
-                            >
-                              <div className="h-full rounded bg-[#2a2a3c] p-2">
-                                <div className="h-2 w-3/4 rounded-lg bg-[#6366f1]"></div>
-                                <div className="mt-2 h-2 w-1/2 rounded-lg bg-[#8284f3]"></div>
-                                <div className="mt-2 h-2 w-2/3 rounded-lg bg-[#a5a6f6]"></div>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="radio"
-                                id="dark-mode"
-                                name="screen-mode"
-                                className="h-4 w-4 cursor-pointer"
-                                checked={theme === "dark"}
-                                onChange={() => handleThemeChange("dark")}
-                              />
-                              <Label htmlFor="dark-mode" className="cursor-pointer text-sm">
-                                Dark Mode
-                              </Label>
-                            </div>
-                          </div>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium">Theme</h3>
+                      <p className="text-sm text-muted-foreground">Choose how the dashboard looks and feels.</p>
+                    </div>
+                    <Separator />
 
-                          <div className="space-y-2">
-                            <div
-                              className={`aspect-video cursor-pointer rounded-md border-2 ${theme === "dark-vibrant" ? "border-primary" : "border-muted"} bg-[#121212] p-2 hover:border-primary`}
-                              onClick={() => handleThemeChange("dark-vibrant")}
-                            >
-                              <div className="h-full rounded bg-[#1a1a1a] p-2">
-                                <div className="h-2 w-3/4 rounded-lg bg-[#0A84FF]"></div>
-                                <div className="mt-2 h-2 w-1/2 rounded-lg bg-[#5AC8FA]"></div>
-                                <div className="mt-2 h-2 w-2/3 rounded-lg bg-[#F1C40F]"></div>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="radio"
-                                id="dark-vibrant-mode"
-                                name="screen-mode"
-                                className="h-4 w-4 cursor-pointer"
-                                checked={theme === "dark-vibrant"}
-                                onChange={() => handleThemeChange("dark-vibrant")}
-                              />
-                              <Label htmlFor="dark-vibrant-mode" className="cursor-pointer text-sm">
-                                Dark Vibrant
-                              </Label>
-                            </div>
-                          </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {themes.map((themeOption) => {
+                        const Icon = themeOption.icon
+                        const isSelected = resolvedTheme === themeOption.id || theme === themeOption.id
 
-                          <div className="space-y-2">
-                            <div
-                              className={`aspect-video cursor-pointer rounded-md border-2 ${theme === "light" ? "border-primary" : "border-muted"} bg-[#fafafa] p-2 hover:border-primary`}
-                              onClick={() => handleThemeChange("light")}
-                            >
-                              <div className="h-full rounded bg-white p-2 shadow-sm">
-                                <div className="h-2 w-3/4 rounded-lg bg-[#0A84FF]"></div>
-                                <div className="mt-2 h-2 w-1/2 rounded-lg bg-[#5AC8FA]"></div>
-                                <div className="mt-2 h-2 w-2/3 rounded-lg bg-[#F1C40F]"></div>
+                        return (
+                          <div
+                            key={themeOption.id}
+                            className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:scale-105 ${
+                              isSelected
+                                ? "border-primary ring-2 ring-primary/20"
+                                : "border-border hover:border-primary/50"
+                            }`}
+                            onClick={() => handleThemeChange(themeOption.id)}
+                          >
+                            {isSelected && (
+                              <div className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                                <CheckIcon className="h-4 w-4 text-primary-foreground" />
+                              </div>
+                            )}
+
+                            <div className="space-y-3">
+                              <div
+                                className={`h-20 w-full rounded-md ${themeOption.preview} flex items-center justify-center`}
+                              >
+                                <Icon className="h-8 w-8 text-foreground/60" />
+                              </div>
+
+                              <div className="space-y-1">
+                                <Label className="text-sm font-medium cursor-pointer">{themeOption.name}</Label>
+                                <p className="text-xs text-muted-foreground">{themeOption.description}</p>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="radio"
-                                id="light-mode"
-                                name="screen-mode"
-                                className="h-4 w-4 cursor-pointer"
-                                checked={theme === "light"}
-                                onChange={() => handleThemeChange("light")}
-                              />
-                              <Label htmlFor="light-mode" className="cursor-pointer text-sm">
-                                Light Mode
-                              </Label>
-                            </div>
                           </div>
+                        )
+                      })}
+                    </div>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Display</CardTitle>
+                        <CardDescription>Customize how information is displayed.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="compact-view">Compact View</Label>
+                            <p className="text-sm text-muted-foreground">Make the dashboard more compact.</p>
+                          </div>
+                          <Switch id="compact-view" checked={compactView} onCheckedChange={setCompactView} />
                         </div>
-                        <p className="text-sm text-muted-foreground">Choose your preferred interface theme.</p>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label htmlFor="compact-view">Compact View</Label>
-                          <p className="text-sm text-muted-foreground">Make the dashboard more compact.</p>
-                        </div>
-                        <Switch id="compact-view" />
-                      </div>
+                      </CardContent>
+                    </Card>
+
+                    <div className="flex justify-end">
                       <Button onClick={() => toast.success("Appearance settings saved")}>Save Changes</Button>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="admin" className="mt-6 space-y-4">
@@ -251,7 +244,6 @@ export default function SettingsPage() {
                               setAdmins([...admins, newAdmin])
                               toast.success("Administrator added successfully")
                               ;(e.target as HTMLFormElement).reset()
-                              ;(e.currentTarget as HTMLFormElement).closest("dialog")?.close()
                             }}
                           >
                             <div className="grid gap-4 py-4">
@@ -327,7 +319,7 @@ export default function SettingsPage() {
                                   <div className="flex justify-end gap-2">
                                     <Dialog>
                                       <DialogTrigger asChild>
-                                        <Button variant="outline" size="icon" className="h-8 w-8">
+                                        <Button variant="outline" size="icon" className="h-8 w-8 bg-transparent">
                                           <PencilIcon className="h-4 w-4" />
                                           <span className="sr-only">Edit</span>
                                         </Button>
@@ -350,7 +342,6 @@ export default function SettingsPage() {
                                             }
                                             setAdmins(admins.map((a) => (a.id === admin.id ? updatedAdmin : a)))
                                             toast.success("Administrator updated successfully")
-                                            ;(e.currentTarget as HTMLFormElement).closest("dialog")?.close()
                                           }}
                                         >
                                           <div className="grid gap-4 py-4">
@@ -402,7 +393,11 @@ export default function SettingsPage() {
                                     </Dialog>
                                     <AlertDialog>
                                       <AlertDialogTrigger asChild>
-                                        <Button variant="outline" size="icon" className="h-8 w-8 text-red-600">
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          className="h-8 w-8 text-red-600 bg-transparent"
+                                        >
                                           <Trash2Icon className="h-4 w-4" />
                                           <span className="sr-only">Delete</span>
                                         </Button>
