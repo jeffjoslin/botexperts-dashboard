@@ -1,5 +1,132 @@
 "use client"
 
+import { DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Switch } from "@/components/ui/switch"
+import { Calendar } from "lucide-react"
+
+interface Chatbot {
+  id: string
+  name: string
+  status: "active" | "inactive" | "training"
+  conversations: number
+  lastActive: string
+  responseTime: string
+  category: string
+}
+
+interface AvailableBot {
+  id: string
+  name: string
+  description: string
+  category: string
+  createdAt: string
+  isActive: boolean
+}
+
+const availableBots: AvailableBot[] = [
+  {
+    id: "bot-1",
+    name: "Customer Support Bot",
+    description: "Handles general customer inquiries and support tickets",
+    category: "Support",
+    createdAt: "2024-01-15",
+    isActive: true,
+  },
+  {
+    id: "bot-2",
+    name: "Sales Assistant Bot",
+    description: "Helps with product recommendations and sales inquiries",
+    category: "Sales",
+    createdAt: "2024-01-20",
+    isActive: true,
+  },
+  {
+    id: "bot-3",
+    name: "Technical Support Bot",
+    description: "Provides technical assistance and troubleshooting",
+    category: "Technical",
+    createdAt: "2024-01-25",
+    isActive: true,
+  },
+  {
+    id: "bot-4",
+    name: "FAQ Bot",
+    description: "Answers frequently asked questions automatically",
+    category: "Information",
+    createdAt: "2024-02-01",
+    isActive: true,
+  },
+  {
+    id: "bot-5",
+    name: "Booking Assistant Bot",
+    description: "Manages appointments and booking requests",
+    category: "Booking",
+    createdAt: "2024-02-05",
+    isActive: true,
+  },
+  {
+    id: "bot-6",
+    name: "Order Tracking Bot",
+    description: "Helps customers track their orders and shipments",
+    category: "Orders",
+    createdAt: "2024-02-10",
+    isActive: true,
+  },
+  {
+    id: "bot-7",
+    name: "Feedback Collection Bot",
+    description: "Collects customer feedback and reviews",
+    category: "Feedback",
+    createdAt: "2024-02-15",
+    isActive: true,
+  },
+  {
+    id: "bot-8",
+    name: "Lead Generation Bot",
+    description: "Qualifies leads and captures contact information",
+    category: "Marketing",
+    createdAt: "2024-02-20",
+    isActive: true,
+  },
+  {
+    id: "bot-9",
+    name: "Product Catalog Bot",
+    description: "Provides detailed product information and specifications",
+    category: "Information",
+    createdAt: "2024-02-25",
+    isActive: true,
+  },
+  {
+    id: "bot-10",
+    name: "HR Assistant Bot",
+    description: "Handles HR inquiries and employee support",
+    category: "HR",
+    createdAt: "2024-03-01",
+    isActive: true,
+  },
+]
+
+const getCategoryColor = (category: string) => {
+  const colors = {
+    Support: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+    Sales: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+    Technical: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+    Information: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+    Booking: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
+    Orders: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+    Feedback: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
+    Marketing: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    HR: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300",
+  }
+  return colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
+}
+
 import * as React from "react"
 import {
   BarChart3Icon,
@@ -10,20 +137,10 @@ import {
   LineChartIcon,
   ChevronRightIcon,
   PencilIcon,
+  SearchIcon,
 } from "lucide-react"
 import { format } from "date-fns"
 
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,12 +152,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { toast } from "sonner"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { toast as sonnerToast } from "sonner"
 
 interface ChatbotEntry {
   id: string
@@ -53,6 +167,15 @@ interface ChatbotEntry {
   lastActive?: Date
 }
 
+interface AvailableChatbot {
+  id: string
+  name: string
+  description: string
+  category: string
+  isActive: boolean
+  createdDate: Date
+}
+
 interface CustomerDetailsProps {
   customerId?: string
   customer?: any
@@ -61,6 +184,90 @@ interface CustomerDetailsProps {
   onSave?: (customer: any) => void
   onCancel?: () => void
 }
+
+// Mock data for available chatbots
+const availableChatbots: AvailableChatbot[] = [
+  {
+    id: "bot-001",
+    name: "Customer Support Bot",
+    description: "Handles general customer inquiries and support tickets",
+    category: "Support",
+    isActive: true,
+    createdDate: new Date("2024-01-15"),
+  },
+  {
+    id: "bot-002",
+    name: "Sales Assistant Bot",
+    description: "Helps with product recommendations and sales inquiries",
+    category: "Sales",
+    isActive: true,
+    createdDate: new Date("2024-02-10"),
+  },
+  {
+    id: "bot-003",
+    name: "Technical Support Bot",
+    description: "Provides technical assistance and troubleshooting",
+    category: "Technical",
+    isActive: true,
+    createdDate: new Date("2024-01-20"),
+  },
+  {
+    id: "bot-004",
+    name: "FAQ Bot",
+    description: "Answers frequently asked questions",
+    category: "Information",
+    isActive: true,
+    createdDate: new Date("2024-03-05"),
+  },
+  {
+    id: "bot-005",
+    name: "Booking Assistant Bot",
+    description: "Helps customers with appointments and bookings",
+    category: "Booking",
+    isActive: true,
+    createdDate: new Date("2024-02-28"),
+  },
+  {
+    id: "bot-006",
+    name: "Product Catalog Bot",
+    description: "Provides product information and catalog browsing",
+    category: "Catalog",
+    isActive: true,
+    createdDate: new Date("2024-03-12"),
+  },
+  {
+    id: "bot-007",
+    name: "Order Tracking Bot",
+    description: "Helps customers track their orders and shipments",
+    category: "Orders",
+    isActive: true,
+    createdDate: new Date("2024-01-30"),
+  },
+  {
+    id: "bot-008",
+    name: "Feedback Collection Bot",
+    description: "Collects customer feedback and reviews",
+    category: "Feedback",
+    isActive: true,
+    createdDate: new Date("2024-02-15"),
+  },
+  {
+    id: "bot-009",
+    name: "Lead Generation Bot",
+    description: "Qualifies leads and collects contact information",
+    category: "Marketing",
+    isActive: true,
+    createdDate: new Date("2024-03-01"),
+  },
+  {
+    id: "bot-010",
+    name: "HR Assistant Bot",
+    description: "Handles HR inquiries and employee support",
+    category: "HR",
+    isActive: false,
+    createdDate: new Date("2024-01-10"),
+  },
+]
 
 export function CustomerDetails({
   customerId,
@@ -105,15 +312,32 @@ export function CustomerDetails({
   const [newChatbotActiveDate, setNewChatbotActiveDate] = React.useState<Date>(new Date())
   const [newChatbotLastActive, setNewChatbotLastActive] = React.useState<Date>(new Date())
 
+  // State for available chatbots dialog
+  const [showAvailableBotsDialog, setShowAvailableBotsDialog] = React.useState(false)
+  const [botSearchTerm, setBotSearchTerm] = React.useState("")
+
   // State for the confirmation dialog
   const [showLastActiveConfirmation, setShowLastActiveConfirmation] = React.useState(false)
   const [pendingActiveState, setPendingActiveState] = React.useState<boolean | null>(null)
   const [isEditMode, setIsEditMode] = React.useState(false)
 
+  // Filter available chatbots based on search term and exclude already added ones
+  const filteredAvailableBots = React.useMemo(() => {
+    const existingBotIds = chatbots.map((bot) => bot.chatbotId)
+    return availableChatbots.filter((bot) => {
+      const matchesSearch =
+        bot.name.toLowerCase().includes(botSearchTerm.toLowerCase()) ||
+        bot.description.toLowerCase().includes(botSearchTerm.toLowerCase()) ||
+        bot.category.toLowerCase().includes(botSearchTerm.toLowerCase())
+      const notAlreadyAdded = !existingBotIds.includes(bot.id)
+      return matchesSearch && notAlreadyAdded && bot.isActive
+    })
+  }, [botSearchTerm, chatbots])
+
   // Toggle customer active status
   const handleCustomerStatusChange = (checked: boolean) => {
     setIsActive(checked)
-    toast.success(`Customer ${checked ? "activated" : "deactivated"} successfully`)
+    sonnerToast.success(`Customer ${checked ? "activated" : "deactivated"} successfully`)
 
     // Update the appropriate date
     if (checked) {
@@ -124,15 +348,27 @@ export function CustomerDetails({
     }
   }
 
-  // Open add chatbot dialog
+  // Open add chatbot dialog (now shows available bots)
   const handleOpenAddChatbot = () => {
-    setNewChatbotName("")
-    setNewChatbotId("")
-    setNewChatbotActive(true)
-    setNewChatbotActiveDate(new Date())
-    setNewChatbotLastActive(new Date())
-    setIsEditMode(false)
-    setAddChatbotOpen(true)
+    setBotSearchTerm("")
+    setShowAvailableBotsDialog(true)
+  }
+
+  // Add a chatbot from available list
+  const handleAddAvailableBot = (availableBot: AvailableChatbot) => {
+    const newChatbot: ChatbotEntry = {
+      id: crypto.randomUUID(),
+      name: availableBot.name,
+      chatbotId: availableBot.id,
+      activeDate: new Date(),
+      inactiveDate: undefined,
+      isActive: true,
+      messageCount: 0,
+      lastActive: new Date(),
+    }
+
+    setChatbots([...chatbots, newChatbot])
+    sonnerToast.success(`${availableBot.name} added successfully`)
   }
 
   // Handle chatbot active toggle with confirmation
@@ -158,22 +394,22 @@ export function CustomerDetails({
       // If confirmed, update the last active date to today
       if (confirmed) {
         setNewChatbotLastActive(new Date())
-        toast.success("Last Active date updated to today")
+        sonnerToast.success("Last Active date updated to today")
       }
 
       setPendingActiveState(null)
     }
   }
 
-  // Add a new chatbot entry
+  // Add a new chatbot entry (manual entry)
   const handleAddChatbot = () => {
     if (!newChatbotName.trim()) {
-      toast.error("Chatbot name is required")
+      sonnerToast.error("Chatbot name is required")
       return
     }
 
     if (!newChatbotId.trim()) {
-      toast.error("Chatbot ID is required")
+      sonnerToast.error("Chatbot ID is required")
       return
     }
 
@@ -190,7 +426,7 @@ export function CustomerDetails({
 
     setChatbots([...chatbots, newChatbot])
     setAddChatbotOpen(false)
-    toast.success("Chatbot added successfully")
+    sonnerToast.success("Chatbot added successfully")
   }
 
   // Open edit chatbot dialog
@@ -211,12 +447,12 @@ export function CustomerDetails({
     if (editingChatbotIndex === null) return
 
     if (!newChatbotName.trim()) {
-      toast.error("Chatbot name is required")
+      sonnerToast.error("Chatbot name is required")
       return
     }
 
     if (!newChatbotId.trim()) {
-      toast.error("Chatbot ID is required")
+      sonnerToast.error("Chatbot ID is required")
       return
     }
 
@@ -233,7 +469,7 @@ export function CustomerDetails({
 
     setChatbots(updatedChatbots)
     setEditChatbotOpen(false)
-    toast.success("Chatbot updated successfully")
+    sonnerToast.success("Chatbot updated successfully")
   }
 
   // Remove a chatbot entry
@@ -241,7 +477,7 @@ export function CustomerDetails({
     const newChatbots = [...chatbots]
     newChatbots.splice(index, 1)
     setChatbots(newChatbots)
-    toast.success("Chatbot removed successfully")
+    sonnerToast.success("Chatbot removed successfully")
   }
 
   // Update chatbot fields
@@ -273,7 +509,7 @@ export function CustomerDetails({
     }
 
     setChatbots(newChatbots)
-    toast.success(`Chatbot ${checked ? "activated" : "deactivated"} successfully`)
+    sonnerToast.success(`Chatbot ${checked ? "activated" : "deactivated"} successfully`)
   }
 
   // Handle save for customer information
@@ -306,7 +542,7 @@ export function CustomerDetails({
   }
 
   const handleSaveRefreshSchedule = () => {
-    toast.success("Refresh schedule updated successfully")
+    sonnerToast.success("Refresh schedule updated successfully")
     setRefreshDialogOpen(false)
   }
 
@@ -322,7 +558,14 @@ export function CustomerDetails({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Customer Details</h1>
+          <p className="text-muted-foreground">Manage customer information and chatbot assignments</p>
+        </div>
+      </div>
+
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -411,7 +654,7 @@ export function CustomerDetails({
                 <Label htmlFor="activeDate">Active Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <Button variant="outline" className="w-full justify-start text-left font-normal bg-transparent">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {activeDate ? format(activeDate, "PPP") : <span>Select date</span>}
                     </Button>
@@ -428,7 +671,7 @@ export function CustomerDetails({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full justify-start text-left font-normal"
+                      className="w-full justify-start text-left font-normal bg-transparent"
                       disabled={isActive}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
@@ -511,7 +754,7 @@ export function CustomerDetails({
                                   size="sm"
                                   onClick={() => {
                                     updateChatbotField(index, "isActive", !chatbot.isActive)
-                                    toast.success(
+                                    sonnerToast.success(
                                       `Chatbot ${!chatbot.isActive ? "activated" : "deactivated"} successfully`,
                                     )
                                   }}
@@ -569,170 +812,70 @@ export function CustomerDetails({
         <Button onClick={handleSaveCustomer}>{isNewCustomer ? "Create Customer" : "Save Changes"}</Button>
       </div>
 
-      {/* Add Chatbot Dialog */}
-      <Dialog open={addChatbotOpen} onOpenChange={setAddChatbotOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+      {/* Available Chatbots Dialog */}
+      <Dialog open={showAvailableBotsDialog} onOpenChange={setShowAvailableBotsDialog}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Add New Chatbot</DialogTitle>
-            <DialogDescription>Enter the details for the new chatbot</DialogDescription>
+            <DialogTitle>Add Chatbot</DialogTitle>
+            <DialogDescription>Search and select from available chatbots to add to this customer</DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="chatbotName">Chatbot Name</Label>
+          <div className="space-y-4">
+            {/* Search Input */}
+            <div className="relative">
+              <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                id="chatbotName"
-                value={newChatbotName}
-                onChange={(e) => setNewChatbotName(e.target.value)}
-                placeholder="Enter chatbot name"
+                placeholder="Search chatbots by name, description, or category..."
+                className="pl-8"
+                value={botSearchTerm}
+                onChange={(e) => setBotSearchTerm(e.target.value)}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="chatbotId">Chatbot ID</Label>
-              <Input
-                id="chatbotId"
-                value={newChatbotId}
-                onChange={(e) => setNewChatbotId(e.target.value)}
-                placeholder="Enter unique identifier"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="chatbotActiveDate">Active Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {newChatbotActiveDate ? format(newChatbotActiveDate, "PPP") : <span>Select date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={newChatbotActiveDate}
-                    onSelect={setNewChatbotActiveDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="chatbotLastActiveDate">Last Active Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {newChatbotLastActive ? format(newChatbotLastActive, "PPP") : <span>Select date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={newChatbotLastActive}
-                    onSelect={setNewChatbotLastActive}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch id="chatbotActive" checked={newChatbotActive} onCheckedChange={handleChatbotActiveToggle} />
-              <Label htmlFor="chatbotActive">Active</Label>
+            {/* Available Bots List */}
+            <div className="max-h-[400px] overflow-y-auto space-y-2">
+              {filteredAvailableBots.length > 0 ? (
+                filteredAvailableBots.map((bot) => (
+                  <Card key={bot.id} className="p-4 hover:bg-accent/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium">{bot.name}</h4>
+                          <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                            {bot.category}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">{bot.description}</p>
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium">Bot ID:</span> {bot.id}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium">Created:</span> {format(bot.createdDate, "MMM d, yyyy")}
+                          </p>
+                        </div>
+                      </div>
+                      <Button onClick={() => handleAddAvailableBot(bot)} size="sm" className="ml-4">
+                        <PlusIcon className="h-4 w-4 mr-1" />
+                        Add
+                      </Button>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageSquareIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No available chatbots found</p>
+                  <p className="text-sm">Try adjusting your search terms</p>
+                </div>
+              )}
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddChatbotOpen(false)}>
-              Cancel
+            <Button variant="outline" onClick={() => setShowAvailableBotsDialog(false)}>
+              Close
             </Button>
-            <Button onClick={handleAddChatbot}>Add Chatbot</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Chatbot Dialog */}
-      <Dialog open={editChatbotOpen} onOpenChange={setEditChatbotOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Edit Chatbot</DialogTitle>
-            <DialogDescription>Update the chatbot details</DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="editChatbotName">Chatbot Name</Label>
-              <Input
-                id="editChatbotName"
-                value={newChatbotName}
-                onChange={(e) => setNewChatbotName(e.target.value)}
-                placeholder="Enter chatbot name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="editChatbotId">Chatbot ID</Label>
-              <Input
-                id="editChatbotId"
-                value={newChatbotId}
-                onChange={(e) => setNewChatbotId(e.target.value)}
-                placeholder="Enter unique identifier"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="editChatbotActiveDate">Active Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {newChatbotActiveDate ? format(newChatbotActiveDate, "PPP") : <span>Select date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={newChatbotActiveDate}
-                    onSelect={setNewChatbotActiveDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="editChatbotLastActiveDate">Last Active Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {newChatbotLastActive ? format(newChatbotLastActive, "PPP") : <span>Select date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={newChatbotLastActive}
-                    onSelect={setNewChatbotLastActive}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch id="editChatbotActive" checked={newChatbotActive} onCheckedChange={handleChatbotActiveToggle} />
-              <Label htmlFor="editChatbotActive">Active</Label>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditChatbotOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveEditChatbot}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -840,7 +983,7 @@ export function CustomerDetails({
               <Label htmlFor="refreshDate">Refresh Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <Button variant="outline" className="w-full justify-start text-left font-normal bg-transparent">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {refreshDate ? format(refreshDate, "PPP") : <span>Select date</span>}
                   </Button>
@@ -870,15 +1013,6 @@ export function CustomerDetails({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-h-[90vh] max-w-6xl w-[95vw] overflow-y-auto">
-          <div>Test</div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
-
-// Missing Table component
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"

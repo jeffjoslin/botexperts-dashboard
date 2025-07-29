@@ -2,7 +2,14 @@
 
 import * as React from "react"
 import { format } from "date-fns"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon, SearchIcon } from "lucide-react"
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
+  SearchIcon,
+  BarChart3Icon,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -46,7 +53,7 @@ export function ChatbotsList({ chatbots, onSelectCustomer }: ChatbotsListProps) 
   }, [filteredChatbots, currentPage])
 
   // Format number with commas
-  const formatNumber = (num: number) => {
+  const formatNumber = (num = 0) => {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
   }
 
@@ -79,26 +86,25 @@ export function ChatbotsList({ chatbots, onSelectCustomer }: ChatbotsListProps) 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="whitespace-nowrap min-w-[150px]">Chatbot Name</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[120px]">Chatbot ID</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[120px]">Customer</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[80px]">Status</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[120px]">Active Since</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[120px]">Last Active</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[100px]">Messages</TableHead>
-                <TableHead className="text-right whitespace-nowrap min-w-[120px]">Actions</TableHead>
+                <TableHead>Chatbot Name</TableHead>
+                <TableHead>ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Messages</TableHead>
+                <TableHead>Last Active</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedChatbots.length > 0 ? (
                 paginatedChatbots.map((chatbot) => (
-                  <TableRow key={chatbot.id}>
+                  <TableRow key={`${chatbot.customerId}-${chatbot.id}`} className="hover:bg-muted/50">
                     <TableCell className="font-medium">{chatbot.name}</TableCell>
                     <TableCell>{chatbot.chatbotId}</TableCell>
                     <TableCell>
                       <Button
                         variant="link"
-                        className="p-0 h-auto"
+                        className="p-0 h-auto font-normal"
                         onClick={() => onSelectCustomer(chatbot.customerId)}
                       >
                         {chatbot.customerName}
@@ -115,19 +121,19 @@ export function ChatbotsList({ chatbots, onSelectCustomer }: ChatbotsListProps) 
                         {chatbot.isActive ? "Active" : "Inactive"}
                       </span>
                     </TableCell>
-                    <TableCell>{chatbot.activeDate ? format(chatbot.activeDate, "MMM d, yyyy") : "N/A"}</TableCell>
-                    <TableCell>{chatbot.lastActive ? format(chatbot.lastActive, "MMM d, yyyy") : "N/A"}</TableCell>
                     <TableCell>{formatNumber(chatbot.messageCount)}</TableCell>
+                    <TableCell>{chatbot.lastActive ? format(chatbot.lastActive, "MMM d, yyyy") : "N/A"}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => onSelectCustomer(chatbot.customerId)}>
-                        View Customer
+                      <Button variant="outline" size="sm">
+                        <BarChart3Icon className="h-4 w-4 mr-1" />
+                        Stats
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center">
+                  <TableCell colSpan={7} className="h-24 text-center">
                     No chatbots found.
                   </TableCell>
                 </TableRow>
