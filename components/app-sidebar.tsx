@@ -19,14 +19,14 @@ import {
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Admin User",
+    email: "admin@be.com",
+    avatar: "/avatars/admin.jpg",
   },
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: "Admin Dashboard",
+      url: "/admin-dashboard",
       icon: LayoutDashboardIcon,
     },
     {
@@ -69,9 +69,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <Link href="/dashboard">
+              <Link href="/admin-dashboard">
                 <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">BotExperts</span>
+                <span className="text-base font-semibold">BotExperts Admin</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -5,8 +5,8 @@ import type { Metadata } from "next"
 import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
-  title: "Portal",
-  description: "The BotExperts Customer Dashboard.",
+  title: "Admin Dashboard",
+  description: "The BotExperts Admin Dashboard.",
   generator: "v1",
 }
 

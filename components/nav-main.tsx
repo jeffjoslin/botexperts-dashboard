@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { LucideIcon } from "lucide-react"
-import { LayoutDashboardIcon, UsersIcon, MessageSquareIcon, HistoryIcon } from "lucide-react"
+import { LayoutDashboardIcon, UsersIcon, HistoryIcon } from "lucide-react"
 
 import {
   SidebarGroup,
@@ -16,19 +16,14 @@ import {
 // Define the main navigation items
 const defaultItems = [
   {
-    title: "Dashboard",
-    url: "/dashboard",
+    title: "Admin Dashboard",
+    url: "/admin-dashboard",
     icon: LayoutDashboardIcon,
   },
   {
     title: "Customers",
     url: "/customers",
     icon: UsersIcon,
-  },
-  {
-    title: "Chat Logs",
-    url: "/chat-logs",
-    icon: MessageSquareIcon,
   },
   {
     title: "Activity History",
